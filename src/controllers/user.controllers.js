@@ -3,6 +3,29 @@ import { ApiError } from "../utils/ApiError.js";
 import { User } from "../models/user.models.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import jwt from "jsonwebtoken"
+import bcrypt from "bcryptjs";
+
+
+const signupUser = asyncHandler(async(req,res) => {
+  const { username , email, password } = req.body;
+
+  if (!username || !email || !password)
+    return res.status(400).json({ error: "All fields are required" });
+
+  try {
+    const existingUser = await User.findOne({ email });
+    if (existingUser)
+      return res.status(409).json({ error: "User already exists" });
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const user = new User({ username, email, password: hashedPassword });
+    await user.save();
+
+    res.status(201).json({ message: "User registered successfully" });
+  } catch (err) {
+    res.status(500).json({ error: "Server error" });
+  }
+});
 
 const registerUser = asyncHandler(async (req, res) => {
   const { email, password, username } = req.body;
@@ -45,28 +68,6 @@ const registerUser = asyncHandler(async (req, res) => {
 });
 
 
-const signupUser = asyncHandler(async(req,res) => {
-  const { username , email, password } = req.body;
-
-  if (!username || !email || !password)
-    return res.status(400).json({ error: "All fields are required" });
-
-  try {
-    const existingUser = await User.findOne({ email });
-    if (existingUser)
-      return res.status(409).json({ error: "User already exists" });
-
-    const hashedPassword = await bcrypt.hash(password, 10);
-    const user = new User({ username, email, password: hashedPassword });
-    await user.save();
-
-    res.status(201).json({ message: "User registered successfully" });
-  } catch (err) {
-    res.status(500).json({ error: "Server error" });
-  }
-});
-
-
 const signinUser = asyncHandler(async(req,res) => {
   const { email, password } = req.body;
 
@@ -75,13 +76,16 @@ const signinUser = asyncHandler(async(req,res) => {
 
   try {
     const user = await User.findOne({ email });
+    console.log(user,"sjhfg")
     if (!user)
       return res.status(401).json({ error: "Invalid credentials" });
 
-    const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch)
+    const isMatch = await bcrypt.compare(password,user.password);
+    console.log(isMatch,"ashd")
+    if (isMatch){
+      console.log(isMatch,"ismatch")
       return res.status(401).json({ error: "Invalid credentials" });
-
+    }
     // Create JWT
     const token = jwt.sign(
       { userId: user._id, email: user.email },

@@ -13,6 +13,6 @@ router.route("/register").post(
 router.route("/signup").post(signupUser)
 
 //secure routes
-router.route("/signin").post(verifyJWT, signinUser)
+router.route("/signin").post( signinUser)
 
 export default router
