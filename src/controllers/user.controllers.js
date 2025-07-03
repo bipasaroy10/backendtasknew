@@ -2,12 +2,11 @@ import { asyncHandler } from "../utils/asyncHandler.js";
 import { ApiError } from "../utils/ApiError.js";
 import { User } from "../models/user.models.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
-import jwt from "jsonwebtoken"
+import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
 
-
-const signupUser = asyncHandler(async(req,res) => {
-  const { username , email, password } = req.body;
+const signupUser = asyncHandler(async (req, res) => {
+  const { username, email, password } = req.body;
 
   if (!username || !email || !password)
     return res.status(400).json({ error: "All fields are required" });
@@ -30,10 +29,7 @@ const signupUser = asyncHandler(async(req,res) => {
 const registerUser = asyncHandler(async (req, res) => {
   const { email, password, username } = req.body;
 
-
-  if (
-    [ email, password, username].some((field) => field?.trim() === "")
-  ) {
+  if ([email, password, username].some((field) => field?.trim() === "")) {
     throw new ApiError(400, "All fields are required");
   }
 
@@ -45,8 +41,7 @@ const registerUser = asyncHandler(async (req, res) => {
     throw new ApiError(409, "email or username already exists");
   }
 
-
- const user = await User.create({
+  const user = await User.create({
     email,
     password,
     username: username.toLowerCase(),
@@ -63,12 +58,9 @@ const registerUser = asyncHandler(async (req, res) => {
   return res
     .status(201)
     .json(new ApiResponse(200, finduser, "user successfully registered"));
-
-     
 });
 
-
-const signinUser = asyncHandler(async(req,res) => {
+const signinUser = asyncHandler(async (req, res) => {
   const { email, password } = req.body;
 
   if (!email || !password)
@@ -76,18 +68,17 @@ const signinUser = asyncHandler(async(req,res) => {
 
   try {
     const user = await User.findOne({ email });
-    if (!user)
-      return res.status(401).json({ error: "Invalid credentials" });
+    if (!user) return res.status(401).json({ error: "Invalid credentials" });
 
-    const isMatch = await bcrypt.compare(password,user.password);
-    if (!isMatch){
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
       return res.status(401).json({ error: "Invalid credentials" });
     }
     // Create JWT
     const token = jwt.sign(
-     { userId: user._id, email: user.email },
+      { userId: user._id, email: user.email },
       process.env.JWT_SECRET,
-      { expiresIn: "1h" }
+      { expiresIn: "1h" },
     );
 
     res.status(200).json({ message: "Login successful", token });
@@ -96,10 +87,4 @@ const signinUser = asyncHandler(async(req,res) => {
   }
 });
 
-
-export {
-
-    registerUser,
-    signupUser,
-    signinUser
-}
+export { registerUser, signupUser, signinUser };
