@@ -29,7 +29,7 @@ const signupUser = asyncHandler(async(req,res) => {
 
 const registerUser = asyncHandler(async (req, res) => {
   const { email, password, username } = req.body;
-  //console.log("email: ",email);
+
 
   if (
     [ email, password, username].some((field) => field?.trim() === "")
@@ -76,19 +76,16 @@ const signinUser = asyncHandler(async(req,res) => {
 
   try {
     const user = await User.findOne({ email });
-    console.log(user,"sjhfg")
     if (!user)
       return res.status(401).json({ error: "Invalid credentials" });
 
     const isMatch = await bcrypt.compare(password,user.password);
-    console.log(isMatch,"ashd")
-    if (isMatch){
-      console.log(isMatch,"ismatch")
+    if (!isMatch){
       return res.status(401).json({ error: "Invalid credentials" });
     }
     // Create JWT
     const token = jwt.sign(
-      { userId: user._id, email: user.email },
+     { userId: user._id, email: user.email },
       process.env.JWT_SECRET,
       { expiresIn: "1h" }
     );
